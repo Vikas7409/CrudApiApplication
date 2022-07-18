@@ -1,0 +1,136 @@
+using CrudApiApplication.Contract.Response;
+using CrudApiApplication.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace CrudApiApplication.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ProductController : ControllerBase
+    {
+        public ApplicationDbContext DbContext { get; }
+        private ApiResponse response = new ApiResponse();
+
+        public ProductController(ApplicationDbContext dbContext)
+        {
+            DbContext = dbContext;
+        }
+        [HttpGet]
+        [Route("GetProduct")]
+        public IActionResult GetProduct()
+        {
+            var products = DbContext.Products.ToList();
+            response.Ok = true;
+            response.Message = "Product list found !";
+            response.status = 200;
+            response.Data = products;
+            return Ok(response);
+        }
+        [HttpGet]
+        [Route("GetProductById")]
+        public IActionResult GetProductById(int id)
+        {
+            var products = DbContext.Products.SingleOrDefault(e => e.Id == id);
+            response.Ok = true;
+            response.Message = "Product list found !";
+            response.status = 200;
+            response.Data = products;
+            return Ok(response);
+        }
+
+        [HttpPost]
+        [Route("CrateProduct")]
+
+        public IActionResult CrateProduct(Products products)
+        {
+
+            try
+            {
+                DbContext.Products.Add(products);
+                DbContext.SaveChanges();
+                response.Ok = true;
+                response.Message = "Product Created Succesfully !";
+                response.status = 200;
+                response.Data = products;
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                response.Message = ex.Message;
+                response.status = 500;
+                response.Ok = false;
+                
+            }
+            return Ok(response);
+        }
+        [HttpDelete]
+        [Route("DeleteProduct/{id}")]
+        public IActionResult DeleteProduct(int id)
+        {
+            var result = DbContext.Products.SingleOrDefault(e => e.Id == id);
+            if(result != null){
+                DbContext.Products.Remove(result);
+                DbContext.SaveChanges();
+                response.Ok = true;
+                response.status = 200;
+                response.Message = "product delete succesfully";
+            }
+            else
+            {
+                response.Ok = false;
+                response.status = 404;
+                response.Message = "product not found";
+            }
+            return  Ok(response
+                );
+            
+        }
+        [HttpPut]
+        [Route("UpdateProduct")]
+
+        public IActionResult UpdateProduct(Products products)
+        {
+
+            try
+            {
+                var product = DbContext.Products.SingleOrDefault(e => e.Id == products.Id);
+                if (product != null)
+                {
+
+
+                    product.Description = product.Description;
+                    product.Titile = product.Titile;
+                    product.Price = product.Price;
+                    product.Quantity = product.Quantity;
+                    DbContext.Products.Update(product);
+                    DbContext.SaveChanges();
+                    response.Ok = true;
+                    response.Message = "Product update Succesfully !";
+                    response.status = 200;
+                    response.Data = products;
+                    return Ok(response);
+                }
+                else
+                {
+                    response.Ok = false;
+                    response.Message = "Product not found  !";
+                    response.status = 200;
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Message = ex.Message;
+                response.status = 500;
+                response.Ok = false;
+
+            }
+            return Ok(response);
+        }
+
+    }
+}
